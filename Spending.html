@@ -1,0 +1,590 @@
+<script>
+    document.getElementById('submit-spending').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const tag = document.getElementById('tag').value.trim();
+      const description = document.getElementById('description').value.trim();
+
+      if (isNaN(amount) || !tag) {
+        alert('请输入有效的金额和标签');
+        return;
+      }
+
+      // Build entry object
+      const entry = { amount, tag };
+      if (description) {
+        entry.description = description;
+      }
+      entry.createdAt = new Date().toISOString();
+
+      // Save to localStorage
+      const existing = JSON.parse(localStorage.getItem('spendings') || '[]');
+      existing.push(entry);
+      localStorage.setItem('spendings', JSON.stringify(existing));
+
+      // Show success and reset form
+      document.getElementById('spending-result').textContent = '记录成功！';
+      document.getElementById('spending-form').reset();
+    });
+  </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spending Tracker</title>
+  <style>
+    /* Delete button styling */
+    .right ul li .delete-btn {
+      background: none;
+      border: none;
+      color: #dc3545;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+      transition: color 0.2s;
+    }
+    .right ul li .delete-btn:hover {
+      color: #a71d2a;
+    }
+    /* Tag button styling */
+    .right ul li .tag-btn {
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 2px 8px;
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    .right ul li .tag-btn:hover {
+      background-color: #333;
+    }
+    /* Group amount, tag, and delete closely */
+    .right ul li .right-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    :root {
+      --primary-color: #007bff;
+      --background-color: #f4f6f8;
+      --card-bg: #fff;
+      --accent-color: #333;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid #ddd;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background-color);
+      color: #000;
+      font-size: 14px;
+    }
+
+
+
+    .right-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: flex-start;
+      flex-grow: 1;
+    }
+
+    .nav-buttons button {
+      margin: 0 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 10px 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .nav-buttons button:hover {
+      background-color: #e9ecf1;
+    }
+
+    .login {
+      background-color: #000;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Spending page form styles */
+    h2 {
+      text-align: center;
+      margin-top: 20px;
+      color: #333333;
+      font-size: 18px;
+    }
+
+    form#spending-form {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 320px;
+      box-sizing: border-box;
+      margin: 20px auto;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #555555;
+      font-size: 14px;
+    }
+    input, select, button {
+      font-size: 14px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #cccccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    /* Extra spacing before Description */
+    #transaction-form label[for="description"] {
+      margin-top: 20px;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus {
+      border-color: #333333;
+      outline: none;
+    }
+
+    button#submit-spending {
+      width: 100%;
+      padding: 10px;
+      background-color: #333333;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button#submit-spending:hover {
+      background-color: #555555;
+    }
+
+    .result {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 600;
+      color: #2a8f2a;
+    }
+    .content {
+      display: flex;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+    .left, .right {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      min-height: 600px;
+    }
+    .left {
+      flex: 1;
+    }
+    .right {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .right h2 {
+      margin-top: 0;
+    }
+    .right ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .right ul li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    /* Center the report title */
+    .right h2 {
+      text-align: center;
+    }
+
+    /* Style each report item */
+    .right ul li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-radius: 6px;
+      background-color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .right ul li span.timestamp {
+      font-size: 14px;
+      color: #555555;
+    }
+
+    .right ul li span.amount {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    .right ul li span.amount.withdrawal {
+      color: red;
+    }
+
+    /* Hide transaction form until balance is set */
+    #transaction-form, #spending-result {
+      display: none;
+    }
+    /* Center remaining balance */
+    #remaining-balance {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Total metrics styling */
+    .result-metric {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+      color: var(--accent-color);
+    }
+
+    /* Center and style the record button */
+    button#submit-transaction {
+      display: block;
+      margin: 20px auto 0;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    button#submit-transaction:hover {
+      background-color: #333;
+    }
+    /* Decorative circles */
+    .left::before, .right::before {
+      content: '';
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: var(--primary-color);
+      opacity: 0.05;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .left::before {
+      top: -30px;
+      left: -30px;
+    }
+    .right::before {
+      bottom: -30px;
+      right: -30px;
+    }
+
+    /* Card hover effect */
+    .left, .right {
+      position: relative;
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .left:hover, .right:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-4px);
+    }
+
+    /* Heading underline decoration */
+    .left h2, .right h2 {
+      position: relative;
+      padding-bottom: 8px;
+    }
+    .left h2::after, .right h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 40px;
+      height: 3px;
+      background: var(--primary-color);
+      transform: translateX(-50%);
+      border-radius: 2px;
+    }
+
+    /* Button hover animations */
+    button, .nav-buttons button, .login {
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    button:hover, .nav-buttons button:hover, .login:hover {
+      transform: translateY(-2px);
+    }
+    button:active, .nav-buttons button:active, .login:active {
+      transform: translateY(0);
+    }
+
+    /* Metrics box styling */
+    .metrics-box {
+      background-color: var(--card-bg);
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .metrics-box .result-metric {
+      margin: 8px 0;
+      font-size: 16px;
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-container">
+      <div><strong>Smart</strong>Finance</div>
+      <div class="right-nav">
+        <div class="nav-buttons">
+          <button onclick="location.href='index.html'">Home</button>
+          <button onclick="location.href='spending.html'">Spending</button>
+          <button class="active" onclick="location.href='Calculator.html'">Calculators</button>
+          <button onclick="location.href='budget.html'">Budget Tools</button>
+        </div>
+        <button class="login">Login / Sign Up</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="left">
+      <h2>Set Initial Balance</h2>
+      <form id="balance-form">
+        <label for="initial-balance">Initial Balance:</label>
+        <input type="number" id="initial-balance" name="initial-balance" required />
+        <button type="button" id="submit-balance">Submit Balance</button>
+      </form>
+
+      <h2>Transaction Tracker</h2>
+      <form id="transaction-form">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" required />
+
+        <label for="tag">Tag:</label>
+        <input type="text" id="tag" name="tag" required />
+
+        <label for="type">Type:</label>
+        <select id="type" name="type">
+          <option value="spending">Spending</option>
+          <option value="deposit">Deposit</option>
+        </select>
+
+        <label for="description">Description (optional):</label>
+        <input type="text" id="description" name="description" />
+
+        <button type="button" id="submit-transaction">Record Transaction</button>
+      </form>
+      <div id="spending-result" class="result"></div>
+    </div>
+    <div class="right">
+      <div class="metrics-box">
+        <div id="remaining-balance" class="result-metric">Remaining: $0.00</div>
+        <div id="total-earning" class="result-metric">Earned: $0.00</div>
+        <div id="total-spending" class="result-metric">Spent: $0.00</div>
+      </div>
+      <h2>Report</h2>
+      <ul id="spending-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Utility to render the list of transactions
+    function renderSpendingList() {
+      const list = document.getElementById('spending-list');
+      list.innerHTML = '';
+      const spendings = JSON.parse(localStorage.getItem('spendings') || '[]');
+      spendings.forEach(entry => {
+        const li = document.createElement('li');
+        const date = new Date(entry.createdAt).toLocaleString();
+        let amountHTML;
+        if (entry.type === 'deposit') {
+          amountHTML = `<span class="amount">+ $${entry.amount.toFixed(2)}</span>`;
+        } else {
+          amountHTML = `<span class="amount withdrawal">- $${entry.amount.toFixed(2)}</span>`;
+        }
+        li.innerHTML =
+          `<span class="timestamp">${date}</span>` +
+          `<span class="right-group">${amountHTML}</span>`;
+
+        // Tag as editable button
+        const tagBtn = document.createElement('button');
+        tagBtn.textContent = entry.tag;
+        tagBtn.className = 'tag-btn';
+        tagBtn.addEventListener('click', () => {
+          const newTag = prompt('Edit tag:', entry.tag);
+          if (newTag !== null && newTag.trim() !== '') {
+            let list = JSON.parse(localStorage.getItem('spendings') || '[]');
+            const idx = list.findIndex(e => e.createdAt === entry.createdAt);
+            if (idx > -1) {
+              list[idx].tag = newTag.trim();
+              localStorage.setItem('spendings', JSON.stringify(list));
+              renderSpendingList();
+            }
+          }
+        });
+
+        // Delete button
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '×';
+        delBtn.className = 'delete-btn';
+        delBtn.addEventListener('click', () => deleteEntry(entry.createdAt));
+
+        li.querySelector('.right-group').appendChild(tagBtn);
+        li.querySelector('.right-group').appendChild(delBtn);
+
+        list.appendChild(li);
+      });
+      updateRemainingBalance();
+    }
+
+    // Delete a transaction by timestamp
+    function deleteEntry(createdAt) {
+      let spendings = JSON.parse(localStorage.getItem('spendings') || '[]');
+      spendings = spendings.filter(entry => entry.createdAt !== createdAt);
+      localStorage.setItem('spendings', JSON.stringify(spendings));
+      renderSpendingList();
+    }
+
+    // Update remaining balance and totals display
+    function updateRemainingBalance() {
+      const initial = parseFloat(localStorage.getItem('initialBalance') || '0');
+      const spendings = JSON.parse(localStorage.getItem('spendings') || '[]');
+      let balance = initial;
+      let totalEarnings = 0;
+      let totalSpendings = 0;
+      spendings.forEach(entry => {
+        if (entry.type === 'deposit') {
+          totalEarnings += entry.amount;
+          balance += entry.amount;
+        } else {
+          totalSpendings += entry.amount;
+          balance -= entry.amount;
+        }
+      });
+      document.getElementById('remaining-balance').textContent =
+        `Remaining Balance: $${balance.toFixed(2)}`;
+      document.getElementById('total-earning').textContent =
+        `Total Earning: $${totalEarnings.toFixed(2)}`;
+      document.getElementById('total-spending').textContent =
+        `Total Spending: $${totalSpendings.toFixed(2)}`;
+    }
+
+    // On page load, check if initial balance exists
+    document.addEventListener('DOMContentLoaded', () => {
+      const initial = localStorage.getItem('initialBalance');
+      if (initial) {
+        document.getElementById('balance-form').style.display = 'none';
+        document.getElementById('transaction-form').style.display = 'block';
+        renderSpendingList();
+      }
+    });
+
+    // Submit initial balance
+    document.getElementById('submit-balance').addEventListener('click', () => {
+      const input = parseFloat(document.getElementById('initial-balance').value);
+      if (isNaN(input)) {
+        alert('Please enter a valid initial balance');
+        return;
+      }
+      localStorage.setItem('initialBalance', input);
+      localStorage.setItem('spendings', JSON.stringify([]));
+      document.getElementById('balance-form').style.display = 'none';
+      document.getElementById('transaction-form').style.display = 'block';
+      renderSpendingList();
+    });
+
+    // Record a transaction
+    document.getElementById('submit-transaction').addEventListener('click', () => {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const tag = document.getElementById('tag').value.trim();
+      const type = document.getElementById('type').value;
+      const description = document.getElementById('description').value.trim();
+
+      if (isNaN(amount) || !tag) {
+        alert('Please enter a valid amount and tag');
+        return;
+      }
+
+      const entry = { amount, tag, type, description, createdAt: new Date().toISOString() };
+      const existing = JSON.parse(localStorage.getItem('spendings') || '[]');
+      existing.push(entry);
+      localStorage.setItem('spendings', JSON.stringify(existing));
+
+      renderSpendingList();
+      document.getElementById('spending-result').textContent = 'Transaction Recorded!';
+      document.getElementById('spending-form').reset();
+    });
+</script>
+<script>
+  function updateMetrics() {
+    const initial = parseFloat(localStorage.getItem('initialBalance') || '0');
+    const spendings = JSON.parse(localStorage.getItem('spendings') || '[]');
+    let balance = initial, totalEarnings = 0, totalSpendings = 0;
+    spendings.forEach(e => {
+      if (e.type === 'deposit') { totalEarnings += e.amount; balance += e.amount; }
+      else { totalSpendings += e.amount; balance -= e.amount; }
+    });
+    document.getElementById('remaining-balance').textContent = `Remaining: $${balance.toFixed(2)}`;
+    document.getElementById('total-earning').textContent = `Earned: $${totalEarnings.toFixed(2)}`;
+    document.getElementById('total-spending').textContent = `Spent: $${totalSpendings.toFixed(2)}`;
+  }
+  document.addEventListener('DOMContentLoaded', updateMetrics);
+</script>
+</body>
+</html>
