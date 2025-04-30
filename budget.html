@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Tools - SmartFinance</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      color: #000;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    .right-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .nav-buttons button {
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 10px 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .nav-buttons button.active,
+    .nav-buttons button:hover {
+      background-color: #e9ecf1;
+    }
+    .login {
+      background-color: #000;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+    }
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 40px;
+    }
+    .left, .right {
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      min-height: 500px;
+      font-size: 14px;
+    }
+    .left h2, .right h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    /* Chart canvas */
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+    /* Additional styling as needed below... */
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>Smart</strong>Finance</div>
+    <div class="right-nav">
+      <div class="nav-buttons">
+        <button onclick="location.href='index.html'">Home</button>
+        <button onclick="location.href='spending.html'">Spending</button>
+        <button class="active" onclick="location.href='Calculator.html'">Calculators</button>
+        <button onclick="location.href='budget.html'">Budget Tools</button>
+      </div>
+      <button class="login">Login / Sign Up</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="left">
+      <h2>Expenses by Tag</h2>
+      <canvas id="expenseChart" width="300" height="300"></canvas>
+    </div>
+    <div class="right">
+      <h2>Income by Tag</h2>
+      <canvas id="incomeChart" width="300" height="300"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const transactions = JSON.parse(localStorage.getItem('spendings')) || [];
+
+    function aggregateByTag(transactions, type) {
+      const result = {};
+      transactions.forEach(tx => {
+        if (tx.type === type) {
+          result[tx.tag] = (result[tx.tag] || 0) + tx.amount;
+        }
+      });
+      return result;
+    }
+
+    const expenseData = aggregateByTag(transactions, 'spending');
+    const incomeData = aggregateByTag(transactions, 'deposit');
+
+    // Total values for ratio
+    const totalExpenses = Object.values(expenseData).reduce((a, b) => a + b, 0);
+    const totalIncome = Object.values(incomeData).reduce((a, b) => a + b, 0);
+    const assets = totalIncome - totalExpenses;
+    const ratioData = {
+      labels: ['Expenses / Assets', 'Income / Assets'],
+      datasets: [{
+        data: assets !== 0 ? [totalExpenses / assets, totalIncome / assets] : [0,0],
+        backgroundColor: ['#ff6384', '#4bc0c0']
+      }]
+    };
+
+    new Chart(document.getElementById('expenseChart'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(expenseData),
+        datasets: [{
+          label: 'Expenses by Tag',
+          data: Object.values(expenseData),
+          backgroundColor: ['#ff6384', '#ff9f40', '#ffcd56', '#36a2eb', '#9966ff'],
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('incomeChart'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(incomeData),
+        datasets: [{
+          label: 'Income by Tag',
+          data: Object.values(incomeData),
+          backgroundColor: ['#4bc0c0', '#9966ff', '#ff6384', '#ff9f40', '#ffcd56'],
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('ratioChart'), {
+      type: 'doughnut',
+      data: ratioData,
+      options: {
+        circumference: Math.PI,
+        rotation: Math.PI
+      }
+    });
+  </script>
+</body>
+</html>
