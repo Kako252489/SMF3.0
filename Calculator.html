@@ -167,9 +167,20 @@
     </div>
     <div class="middle">
       <h2>Salary Calculator</h2>
+      <p>Use this tool to calculate your estimated monthly income after taxes. You can choose to input either your annual or hourly salary.</p>
       <form id="salary-form">
-        <label for="annual-salary">Annual Salary ($):</label>
-        <input type="number" id="annual-salary" name="annualSalary" required />
+        <label for="salary-type">Salary Type:</label>
+        <select id="salary-type" name="salaryType" required>
+          <option value="annual">Annual</option>
+          <option value="hourly">Hourly</option>
+        </select>
+
+        <label for="salary-amount">Salary Amount ($):</label>
+        <input type="number" id="salary-amount" name="salaryAmount" required />
+        <div id="hourly-fields" style="display: none;">
+          <label for="hours-per-week">Hours per Week:</label>
+          <input type="number" id="hours-per-week" name="hoursPerWeek" min="1" max="168" />
+        </div>
         <label for="state">State:</label>
         <select id="state" name="state" required>
           <option value="">Select State</option>
@@ -249,15 +260,87 @@
   <script>
     // Mapping of state tax rates (adjust values as needed)
     const stateTaxRates = { AL:0.05, AK:0.0, AZ:0.0454, AR:0.065, CA:0.13, CO:0.0463, CT:0.0699, DE:0.066, FL:0.0, GA:0.0575, HI:0.0825, ID:0.068, IL:0.0495, IN:0.0323, IA:0.085, KS:0.057, KY:0.05, LA:0.06, ME:0.0715, MD:0.0575, MA:0.05, MI:0.0425, MN:0.0985, MS:0.05, MO:0.054, MT:0.069, NE:0.0684, NV:0.0, NH:0.0, NJ:0.0897, NM:0.049, NY:0.0882, NC:0.0525, ND:0.029, OH:0.0497, OK:0.05, OR:0.099, PA:0.0307, RI:0.0595, SC:0.07, SD:0.0, TN:0.0, TX:0.0, UT:0.0495, VT:0.0895, VA:0.0575, WA:0.0, WV:0.065, WI:0.0765, WY:0.0 };
+
+    document.getElementById('salary-type').addEventListener('change', () => {
+      const type = document.getElementById('salary-type').value;
+      const hourlyFields = document.getElementById('hourly-fields');
+      if (type === 'hourly') {
+        hourlyFields.style.display = 'block';
+      } else {
+        hourlyFields.style.display = 'none';
+      }
+    });
+
     // Salary Calculator
-    document.getElementById('calculate-salary').addEventListener('click', () => { const salary = parseFloat(document.getElementById('annual-salary').value); const state = document.getElementById('state').value; if(isNaN(salary)||!state){alert('Please enter a valid salary and select a state.');return;} const rate=stateTaxRates[state]||0; const monthly=(salary*(1-rate))/12; document.getElementById('salary-result').innerHTML =
-      `Net Monthly Salary after tax (${state}): <span class="amount">$${monthly.toFixed(2)}</span>`; });
+    document.getElementById('calculate-salary').addEventListener('click', () => {
+      const salaryType = document.getElementById('salary-type').value;
+      const salaryAmount = parseFloat(document.getElementById('salary-amount').value);
+      const hoursPerWeek = parseFloat(document.getElementById('hours-per-week').value);
+      const state = document.getElementById('state').value;
+
+      if (isNaN(salaryAmount) || !state || (salaryType === 'hourly' && isNaN(hoursPerWeek))) {
+        alert('Please enter a valid salary, select a state, and if hourly, provide hours per week.');
+        return;
+      }
+
+      const rate = stateTaxRates[state] || 0;
+      let monthly;
+
+      if (salaryType === 'annual') {
+        monthly = (salaryAmount * (1 - rate)) / 12;
+      } else {
+        // hourly: calculate annual based on hours per week * 52 weeks
+        const annualFromHourly = salaryAmount * hoursPerWeek * 52;
+        monthly = (annualFromHourly * (1 - rate)) / 12;
+      }
+
+      document.getElementById('salary-result').innerHTML =
+        `Net Monthly Salary after tax (${state}): <span class="amount">$${monthly.toFixed(2)}</span>`;
+    });
     // Car Payment Calculator
-    document.getElementById('calculate-car').addEventListener('click', () => { const price=parseFloat(document.getElementById('car-price').value); const down=parseFloat(document.getElementById('down-payment').value); const apr=parseFloat(document.getElementById('interest-rate').value)/100; const years=parseFloat(document.getElementById('loan-term').value); if(isNaN(price)||isNaN(down)||isNaN(apr)||isNaN(years)){alert('Please fill in all car payment fields correctly.');return;} const p=price-down; const r=apr/12; const n=years*12; const payment=(p*r)/(1-Math.pow(1+r,-n)); document.getElementById('car-result').innerHTML =
-      `Monthly Car Payment: <span class="amount">$${payment.toFixed(2)}</span>`; });
+    document.getElementById('calculate-car').addEventListener('click', () => {
+      const price = parseFloat(document.getElementById('car-price').value);
+      const down = parseFloat(document.getElementById('down-payment').value);
+      const apr = parseFloat(document.getElementById('interest-rate').value) / 100;
+      const years = parseFloat(document.getElementById('loan-term').value);
+
+      if (isNaN(price) || isNaN(down) || isNaN(apr) || isNaN(years)) {
+        alert('Please fill in all car payment fields correctly.');
+        return;
+      }
+
+      const carTaxRate = 0.08; // 8% sales tax
+      const totalCarCost = price * (1 + carTaxRate);
+      const p = totalCarCost - down;
+      const r = apr / 12;
+      const n = years * 12;
+      const payment = (p * r) / (1 - Math.pow(1 + r, -n));
+
+      document.getElementById('car-result').innerHTML =
+        `Monthly Car Payment (with tax): <span class="amount">$${payment.toFixed(2)}</span>`;
+    });
     // Mortgage Calculator
-    document.getElementById('calculate-mortgage').addEventListener('click', () => { const homePrice=parseFloat(document.getElementById('home-price').value); const downHome=parseFloat(document.getElementById('down-payment-home').value); const aprHome=parseFloat(document.getElementById('interest-rate-home').value)/100; const yearsHome=parseFloat(document.getElementById('loan-term-home').value); if(isNaN(homePrice)||isNaN(downHome)||isNaN(aprHome)||isNaN(yearsHome)){alert('Please fill in all mortgage fields correctly.');return;} const ph=homePrice-downHome; const rh=aprHome/12; const nh=yearsHome*12; const m=(ph*rh)/(1-Math.pow(1+rh,-nh)); document.getElementById('mortgage-result').innerHTML =
-      `Monthly Mortgage Payment: <span class="amount">$${m.toFixed(2)}</span>`; });
+    document.getElementById('calculate-mortgage').addEventListener('click', () => {
+      const homePrice = parseFloat(document.getElementById('home-price').value);
+      const downHome = parseFloat(document.getElementById('down-payment-home').value);
+      const aprHome = parseFloat(document.getElementById('interest-rate-home').value) / 100;
+      const yearsHome = parseFloat(document.getElementById('loan-term-home').value);
+
+      if (isNaN(homePrice) || isNaN(downHome) || isNaN(aprHome) || isNaN(yearsHome)) {
+        alert('Please fill in all mortgage fields correctly.');
+        return;
+      }
+
+      const homeTaxRate = 0.01; // 1% property tax
+      const homeWithTaxes = homePrice * (1 + homeTaxRate);
+      const ph = homeWithTaxes - downHome;
+      const rh = aprHome / 12;
+      const nh = yearsHome * 12;
+      const m = (ph * rh) / (1 - Math.pow(1 + rh, -nh));
+
+      document.getElementById('mortgage-result').innerHTML =
+        `Monthly Mortgage Payment (with tax): <span class="amount">$${m.toFixed(2)}</span>`;
+    });
   </script>
 </body>
 </html>
