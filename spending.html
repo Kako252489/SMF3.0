@@ -5,7 +5,7 @@
       const description = document.getElementById('description').value.trim();
 
       if (isNaN(amount) || !tag) {
-        alert('请输入有效的金额和标签');
+        alert('Invalid Amount');
         return;
       }
 
@@ -22,7 +22,7 @@
       localStorage.setItem('spendings', JSON.stringify(existing));
 
       // Show success and reset form
-      document.getElementById('spending-result').textContent = '记录成功！';
+      document.getElementById('spending-result').textContent = 'Record Sucess！';
       document.getElementById('spending-form').reset();
     });
   </script>
